@@ -107,7 +107,7 @@ function App() {
       <ShinyText text="Hokieverse" disabled={false} speed={3} className='text-shiny' />
 
       <div className="video-container">
-        <video ref={localVideoRef} autoPlay playsInline className="video" />
+        <video ref={localVideoRef} autoPlay playsInline muted className="video" />
         <video ref={remoteVideoRef} autoPlay playsInline className="video" />
       </div>
 
