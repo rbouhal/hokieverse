@@ -1,38 +1,106 @@
-.App {
+body {
+  background-color: #000000;
+  color: white;
+  font-family: Arial, sans-serif;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.video-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
-.App-link {
-  color: #61dafb;
+/* Video styling */
+.video {
+  width: 48%; /* Each video takes almost half of the screen */
+  max-width: 600px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: rgba(199, 197, 197, 0.175);
+  border-radius: 10px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.shiny-button {
+  display: inline-block;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  margin-top: 30px;
+  background-color: #111;
+  border: 1px solid #353535;
+  border-radius: 50px;
+}
+
+.shiny-button:hover {
+  background: #222
+}
+
+.shiny-button:active {
+  background: #75787b;
+}
+
+.shiny-button.disabled {
+  background: rgba(100, 100, 100, 0.5); /* Dimmed color */
+  cursor: not-allowed;
+  pointer-events: none; /* Prevents clicks */
+  opacity: 0.6;
+}
+
+
+.text-shiny {
+  font-size: clamp(2rem, 5vw, 4rem); /* Responsive font size */
+  font-weight: bold;
+  text-align: center;
+  margin-top: 150px;
+  margin-bottom: 40px;
+}
+
+.waiting-users {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.shiny-button.loading {
+  background: rgba(100, 100, 100, 0.5);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+
+
+/* RESPONSIVENESS */
+@media (max-width: 1024px) {
+  .video {
+    max-width: 500px; /* Slightly smaller videos for medium screens */
   }
-  to {
-    transform: rotate(360deg);
+}
+
+@media (max-width: 768px) {
+  .video-container {
+    flex-direction: column;
+  }
+
+  .video {
+    max-width: 80%;
+  }
+}
+
+@media (max-width: 480px) {
+  .video {
+    width: 100%; /* Full width on very small screens */
   }
 }
