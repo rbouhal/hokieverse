@@ -6,7 +6,7 @@ import Particles from './Particles';
 import GradientText from './GradientText'
 import "./App.css";
 
-const socket = io("hserver-emdmhzb4bgfcf6ac.eastus-01.azurewebsites.net", {
+const socket = io("hserver.azurewebsites.net", {
   transports: ["websocket", "polling"]
 });
 ; // Replace with your server URL
