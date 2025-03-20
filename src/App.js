@@ -6,7 +6,7 @@ import Particles from './Particles';
 import GradientText from './GradientText'
 import "./App.css";
 
-const socket = io(process.env.REACT_APP_BACKEND_URL || "localhost:5000", {
+const socket = io("hserver-emdmhzb4bgfcf6ac.eastus-01.azurewebsites.net", {
   transports: ["websocket", "polling"]
 });
 ; // Replace with your server URL
