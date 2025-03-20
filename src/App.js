@@ -118,25 +118,6 @@ function App() {
 
   }, []);
 
-  const createPeerConnection = () => {
-    const pc = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    });
-
-    pc.ontrack = (event) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
-      }
-    };
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit("candidate", { candidate: event.candidate });
-      }
-    };
-
-    return pc;
-  };
 
   const findNewStranger = () => {
     socket.emit("findStranger");
