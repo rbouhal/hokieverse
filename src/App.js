@@ -6,7 +6,7 @@ import Particles from './Particles';
 import GradientText from './GradientText'
 import "./App.css";
 
-const socket = io("hserver.azurewebsites.net", {
+const socket = io(process.env.REACT_APP_BACKEND_URL || "localhost:5000", {
   transports: ["websocket", "polling"]
 });
 ; // Replace with your server URL
@@ -19,46 +19,100 @@ function App() {
   const [isSearching, setIsSearching] = useState(false); // Tracks if user is in queue
 
   useEffect(() => {
+    let localStream;
+
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((stream) => {
+        localStream = stream;
         localVideoRef.current.srcObject = stream;
       })
       .catch((error) => console.error("Error accessing media devices:", error));
 
     socket.on("waitingUsers", (count) => {
-      setWaitingUsers(count); // Update waiting user count in state
+      setWaitingUsers(count);
     });
 
     socket.on("waitingInQueue", () => {
-      setIsSearching(true); // Show loading when user is waiting
+      setIsSearching(true);
     });
 
-    socket.on("matchFound", async (partnerId) => {
-      setIsSearching(false); // Stop loading when connected
-      peerConnection.current = createPeerConnection();
+    socket.on("matchFound", async ({ partnerId, isInitiator }) => {
+      setIsSearching(false);
+      
+      if (peerConnection.current) {
+        peerConnection.current.close();
+      }
+      
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      });
 
-      // Send offer to the matched user
-      const offer = await peerConnection.current.createOffer();
-      await peerConnection.current.setLocalDescription(offer);
-      socket.emit("offer", { targetId: partnerId, offer });
+      pc.ontrack = (event) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      };
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit("candidate", { targetId: partnerId, candidate: event.candidate });
+        }
+      };
+
+      // Add local tracks to the connection
+      localStream.getTracks().forEach(track => {
+        pc.addTrack(track, localStream);
+      });
+
+      peerConnection.current = pc;
+
+      if (isInitiator) {
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit("offer", { targetId: partnerId, offer });
+        } catch (error) {
+          console.error("Error creating offer:", error);
+        }
+      }
     });
 
     socket.on("offer", async ({ targetId, offer }) => {
-      peerConnection.current = createPeerConnection();
-      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
-
-      const answer = await peerConnection.current.createAnswer();
-      await peerConnection.current.setLocalDescription(answer);
-      socket.emit("answer", { targetId, answer });
+      try {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+        socket.emit("answer", { targetId, answer });
+      } catch (error) {
+        console.error("Error handling offer:", error);
+      }
     });
 
     socket.on("answer", async ({ answer }) => {
-      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+      try {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+      } catch (error) {
+        console.error("Error setting remote description:", error);
+      }
     });
 
     socket.on("candidate", async ({ candidate }) => {
-      if (peerConnection.current.remoteDescription) {
-        await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+      try {
+        if (peerConnection.current && peerConnection.current.remoteDescription) {
+          await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+      } catch (error) {
+        console.error("Error adding ICE candidate:", error);
+      }
+    });
+
+    socket.on("peerDisconnected", () => {
+      if (peerConnection.current) {
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
       }
     });
 
